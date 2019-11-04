@@ -7,6 +7,10 @@ TagManager:
   - Obstacle
   - RedTeam
   - BlueTeam
+  - HealthBar1
+  - HealthBar2
+  - KillCount1
+  - KillCount2
   layers:
   - Default
   - TransparentFX

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class TankManager
@@ -23,6 +24,9 @@ public class TankManager
     private Color m_PlayerColor;
     private PlayerServer m_playerServer;
     private TankObservation m_tankObservation;
+    private GameObject healthCanvas;
+    private GameObject killCountCanvas;
+    private Text killCount;
 
     private float m_timer;
     public float distanceToFlag; //can change to public getter and setters instead
@@ -38,7 +42,15 @@ public class TankManager
         m_Shooting = m_Instance.GetComponent<TankShooting>();
         m_Shooting.m_PlayerNumber = teamNumber;
 
+        //UI Healthbar manager
         m_Health = m_Instance.GetComponent<TankHealth>();
+        healthCanvas = GameObject.FindGameObjectWithTag("HealthBar" + teamNumber);
+        m_Health.ui_HealthSlider = healthCanvas.GetComponentInChildren<Slider>();
+
+        //Kill count Ui manager
+        killCountCanvas = GameObject.FindGameObjectWithTag("KillCount" + teamNumber);
+        killCount = killCountCanvas.GetComponent<Text>();
+        killCount.text = "KILL COUNT: " + getKillCount().ToString();//Not updating for some reason
 
         // Observation
         m_tankObservation = m_Instance.GetComponent<TankObservation>();
@@ -138,9 +150,21 @@ public class TankManager
 
     }
 
+    //gets the killCount value for the tank
+    public void updateKillCount()
+    {
+        getKillCount();
+        killCount.text = "KILL COUNT: " + getKillCount().ToString();
+    }
+
     public bool holdingFlag()
     {
         return m_Health.holdingFlag();
     }
 
+    //getter to the shooting objects getscore method, this is to ensure we don't get the wrong tanks info
+    public float getKillCount()
+    {
+        return m_Shooting.GetScore();
+    }
 }

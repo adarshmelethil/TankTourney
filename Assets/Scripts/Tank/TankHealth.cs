@@ -6,6 +6,7 @@ public class TankHealth : MonoBehaviour
     public float m_StartingHealth = 100f;          
     public Slider m_Slider;                        //healthslider
     public Image m_FillImage;                      //image component of fill game object
+    public Slider ui_HealthSlider;
     public Color m_FullHealthColor = Color.green;  
     public Color m_ZeroHealthColor = Color.red;    
     public GameObject m_ExplosionPrefab;
@@ -53,10 +54,13 @@ public class TankHealth : MonoBehaviour
     {
         // Adjust the value and colour of the slider.
         m_Slider.value = m_CurrentHealth;
+        if (ui_HealthSlider != null)//this is needed because the game doesn't start with tanks but the UI starts right in the start menu
+        {
+            ui_HealthSlider.value = m_CurrentHealth;
+        }
 
         m_FillImage.color = Color.Lerp(m_ZeroHealthColor, m_FullHealthColor, (m_CurrentHealth/m_StartingHealth));
     }
-
 
     private void OnDeath()
     {
@@ -68,8 +72,7 @@ public class TankHealth : MonoBehaviour
 
         m_ExplosionParticles.Play();
         m_ExplosionAudio.Play();
-
-        //may not need this line as we move them back to their spawn point
+        
         gameObject.SetActive(false);
 
         if (flag != null)

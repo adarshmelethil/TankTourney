@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     public Text[] m_TankTimerTexts;
     public Button pauseButton;
     public Button unPauseButton;
+    public Button startButton;
     public Canvas pauseMenu;
 
     public Transform team1Spawn;
@@ -26,7 +27,7 @@ public class GameManager : MonoBehaviour
     //public PlayerServer[] m_PlayerServers;
     private const int NUM_PLAYERS = 2;
 
-    private const float STARTING_TIME = 10000f;
+    private const float STARTING_TIME = 200f;
     private int m_RoundNumber;              //round number
     private WaitForSeconds m_StartWait;     //delay for coroutine
     private WaitForSeconds m_EndWait;
@@ -37,8 +38,8 @@ public class GameManager : MonoBehaviour
     {
         //pauseButton.gameObject.SetActive(true);
         //unPauseButton.gameObject.SetActive(false);
-        Time.timeScale = 1;
-        pauseButton.gameObject.SetActive(true);
+        startButton.gameObject.SetActive(true);
+        pauseButton.gameObject.SetActive(false);
         pauseMenu.gameObject.SetActive(false);
         m_StartWait = new WaitForSeconds(m_StartDelay);
         m_EndWait = new WaitForSeconds(m_EndDelay);
@@ -46,8 +47,8 @@ public class GameManager : MonoBehaviour
         SpawnAllTanks();
         SetCameraTargets();
 
-        StartCoroutine(GameLoop());
-
+        Time.timeScale = 0;
+        //StartCoroutine(GameLoop());
     }
 
     private void Update()
@@ -63,6 +64,14 @@ public class GameManager : MonoBehaviour
                 Pause();
             }
         }
+    }
+
+    public void StartGame()
+    {
+        Time.timeScale = 1;
+        startButton.gameObject.SetActive(false);
+        pauseButton.gameObject.SetActive(true);
+        StartCoroutine(GameLoop());
     }
 
     public void Restart()
@@ -196,8 +205,10 @@ public class GameManager : MonoBehaviour
                 {
                     m_Tanks[i].Reset(m_Tanks[i].m_SpawnPoint);
                 }
+                m_Tanks[i].updateKillCount();//for updating kill count UI
             }
-            
+
+
             yield return null;
         }
     }
@@ -241,8 +252,21 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                //the winner based off kills goes here and then the winner based off flag distance
-                m_Tanks[i].distanceToFlag = Mathf.Abs(Vector3.Distance(m_Tanks[i].m_Instance.transform.position, m_flag.transform.position));
+                //poorly written and won't work for more than 2 tanks but this is getting the kill count and returning who has more kills
+                if(m_Tanks[0].getKillCount() > m_Tanks[1].getKillCount())
+                {
+                    return m_Tanks[0];
+                }
+                else if(m_Tanks[1].getKillCount() > m_Tanks[0].getKillCount())
+                {
+                    return m_Tanks[1];
+                }
+
+                else
+                {
+                    //the winner based off kills goes here and then the winner based off flag distance
+                    m_Tanks[i].distanceToFlag = Mathf.Abs(Vector3.Distance(m_Tanks[i].m_Instance.transform.position, m_flag.transform.position));
+                }
             }
         }
         //after forloop, may want to check kill counts here before distance toFlag

@@ -2,6 +2,7 @@
 
 public class ShellExplosion : MonoBehaviour
 {
+    public Transform m_shooter;                       //game object that shot the shell, used for kill count
     public LayerMask m_TankMask;                      //Possibly a problem in our project as this uses a layer all tanks are on
     public ParticleSystem m_ExplosionParticles;       
     public AudioSource m_ExplosionAudio;              
@@ -40,6 +41,11 @@ public class ShellExplosion : MonoBehaviour
             float damage = CalculateDamage(targetRigidBody.position);
 
             targetHealth.TakeDamage(damage);
+            //if the target is dead and it isn't the shooter who killed themselves send a call to the shooter gameobject to find and run the SetScore method
+            if((targetHealth.isDead()) && (m_shooter.GetComponent<TankShooting>().m_PlayerNumber != targetRigidBody.GetComponent<TankShooting>().m_PlayerNumber))
+            {
+                m_shooter.SendMessage("SetScore", 1,  SendMessageOptions.RequireReceiver);
+            }
         }
 
         m_ExplosionParticles.transform.parent = null;

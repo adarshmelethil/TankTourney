@@ -20,6 +20,9 @@ public class TankShooting : MonoBehaviour
     private float m_ChargeSpeed;         
     private bool m_Fired;                //fired or not so that we don't fire more than once per press
 
+    //poorly placed killcount variable but this is the easiest place to get information on killcount
+    private int killCount = 0;
+
     public float timeBetweenShots = 1f;
     [SerializeField]
     private float timeSinceLastShot = 1f;
@@ -86,11 +89,24 @@ public class TankShooting : MonoBehaviour
         Rigidbody shellInstance = Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
 
         shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward; //charge shot
+        shellInstance.GetComponent<ShellExplosion>().m_shooter = transform; //sets the shooter of the shell
         // shellInstance.velocity = m_MaxLaunchForce * m_FireTransform.forward; //no charge shot
 
         m_ShootingAudio.clip = m_FireClip;
         m_ShootingAudio.Play();
 
         m_CurrentLaunchForce = m_MinLaunchForce;
+    }
+    
+    //private set for score, for some reason needs increment when using sendmessage as killCount++ doesn't work with sendmessage
+    private void SetScore(int increment)
+    {
+        killCount = killCount+increment;
+    }
+
+    //public get used for the UI's kill count text and game end possible result
+    public int GetScore()
+    {
+        return killCount;
     }
 }
