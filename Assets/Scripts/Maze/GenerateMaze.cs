@@ -1,11 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class GenerateMaze : MonoBehaviour
 {
 
     public GameObject prefab;
+    private List<GameObject> m_walls = new List<GameObject>();
     
     public int width;
     
@@ -22,6 +24,70 @@ public class GenerateMaze : MonoBehaviour
     [HideInInspector] public List<Edge> ogEdgesMirror;
 
     [HideInInspector] public int EdgeIndex = 0;
+    private List<Tuple<float, float, float>> m_wallPositions;
+
+    private GameObject[] m_EdgeWalls;
+    private List<Tuple<float, float>> m_edgeWallPositions;
+
+    public void Update()
+    {
+        updateWallPositions();
+    }
+    public void setEdgeWalls(GameObject[] edgeWalls)
+    {
+        m_EdgeWalls = edgeWalls;
+
+        m_edgeWallPositions = new List<Tuple<float, float>>();
+        for (int i = 0; i < m_EdgeWalls.Length; i++)
+        {
+            m_edgeWallPositions.Add(new Tuple<float, float> (
+                m_EdgeWalls[i].transform.position.x,
+                m_EdgeWalls[i].transform.position.z
+            ));
+        }
+    }
+    public List<Tuple<float, float>> getEdgeWallPositions()
+    {
+        if (m_edgeWallPositions == null)
+            return new List<Tuple<float, float>>();
+        return m_edgeWallPositions;
+    }
+
+    public List<Tuple<float, float, float>> getWallPositions()
+    {
+        if (m_wallPositions == null)
+            return new List<Tuple<float, float, float>>();
+        return m_wallPositions;
+    }
+    public List<Tuple<float, float, float>> getCloseWallPositions(float x, float y, float cutOff)
+    {
+        if (m_wallPositions == null)
+            return new List<Tuple<float, float, float>>();
+        
+
+        var cutOffWalls = new List<Tuple<float, float, float>>();
+        foreach (var wall in m_wallPositions)
+            if (Vector2.Distance(new Vector2(x, y), new Vector2(wall.Item1, wall.Item2)) <= cutOff)
+                cutOffWalls.Add(wall);
+        
+        //Debug.Log($"Num of walls {cutOffWalls.Count}");
+        return cutOffWalls;
+    }
+
+    public void updateWallPositions()
+    {
+        List<Tuple<float, float, float>> positions = new List<Tuple<float, float, float>>();
+        foreach (GameObject m_wall in m_walls)
+        {
+            var x = m_wall.transform.position.x;
+            var y = m_wall.transform.position.z;
+            var rot = m_wall.transform.eulerAngles.y;
+            //Debug.Log($"rot: {rot}");
+            if (m_wall.GetComponent<MeshRenderer>().enabled)
+                positions.Add(new Tuple<float, float, float>(x, y, rot));
+        }
+        m_wallPositions = positions;
+    }
 
     public void generate()
     {
@@ -44,6 +110,9 @@ public class GenerateMaze : MonoBehaviour
         ogEdgesMirror = new List<Edge>(edgesMirror);
 
         RemoveEdgeCoroutine();
+
+        updateWallPositions();
+        Debug.Log($"NUMBER OF WALLS: {m_walls.Count}");
     }
     
     // Generating frame (outter boundaries)
@@ -56,9 +125,11 @@ public class GenerateMaze : MonoBehaviour
             {
                 if (x==0 || x== width)
                 {
-                    Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span)), Quaternion.Euler(0, 90, 0));
+                    GameObject go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span)), Quaternion.Euler(0, 90, 0));
+                    m_walls.Add(go);
                     //This is for the mirrored maze
-                    Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span) * -1), Quaternion.Euler(0, 90, 0));
+                    go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span) * -1), Quaternion.Euler(0, 90, 0));
+                    m_walls.Add(go);
                 }
             }
         }
@@ -74,14 +145,16 @@ public class GenerateMaze : MonoBehaviour
             {
                 if (z == height)
                 {
-                    Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, (startPoint.position.z + z * span) + (span/2)), Quaternion.Euler(0, 0, 0));
+                    GameObject go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, (startPoint.position.z + z * span) + (span/2)), Quaternion.Euler(0, 0, 0));
+                    m_walls.Add(go);
                     //This is for the mirrored maze
-                    Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, ((startPoint.position.z + z * span) + (span/2))*-1), Quaternion.Euler(0, 0, 0));
+                    go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, ((startPoint.position.z + z * span) + (span/2))*-1), Quaternion.Euler(0, 0, 0));
+                    m_walls.Add(go);
                 }
                 if (z == 0)
                 {
                     //Random.Range has an inclusive 0 and exclusive 2
-                    int check = Random.Range(0, 2);
+                    int check = UnityEngine.Random.Range(0, 2);
                     //This is here just in case we created a wall in every other slot. If that's the case the last position of the maze will never have a wall ensuring there's always an opening
                     if (counter == width - 1)
                     {
@@ -89,9 +162,11 @@ public class GenerateMaze : MonoBehaviour
                     }
                     else if (check == 0)
                     {
-                        Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, (startPoint.position.z + z * span) + (span / 2)), Quaternion.Euler(0, 0, 0));
+                        GameObject go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, (startPoint.position.z + z * span) + (span / 2)), Quaternion.Euler(0, 0, 0));
+                        m_walls.Add(go);
                         //This is for the mirrored maze
-                        Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, ((startPoint.position.z + z * span) + (span / 2)) * -1), Quaternion.Euler(0, 0, 0));
+                        go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, ((startPoint.position.z + z * span) + (span / 2)) * -1), Quaternion.Euler(0, 0, 0));
+                        m_walls.Add(go);
                         counter++;
                     }
                 }
@@ -109,7 +184,8 @@ public class GenerateMaze : MonoBehaviour
         {
             for (int x = 1; x < width; x++)
             {
-                GameObject go = (GameObject)Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span)), Quaternion.Euler(0, 90, 0));
+                GameObject go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span)), Quaternion.Euler(0, 90, 0));
+                m_walls.Add(go);
 
                 Edge edge = go.AddComponent<Edge>() as Edge;
 
@@ -118,8 +194,8 @@ public class GenerateMaze : MonoBehaviour
                 go.GetComponent<Edge>().tiles[1] = tiles[EdgeIndex+1];
                 edges.Add(go.GetComponent<Edge>());
                 
-                GameObject goM = (GameObject)Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span) * -1), Quaternion.Euler(0, 90, 0));
-
+                GameObject goM = Instantiate(prefab, new Vector3((startPoint.position.x + x * span), 0, (startPoint.position.z + z * span) * -1), Quaternion.Euler(0, 90, 0));
+                m_walls.Add(goM);
                 Edge edgeM = goM.AddComponent<Edge>() as Edge;
 
                 goM.GetComponent<Edge>().tiles = new Tile[2];
@@ -140,8 +216,8 @@ public class GenerateMaze : MonoBehaviour
         {
             for (int x = 0; x < width; x++)
             {
-                GameObject go = (GameObject)Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, (startPoint.position.z + z * span) + (span/2)), Quaternion.Euler(0, 0, 0));
-
+                GameObject go = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span/2), 0, (startPoint.position.z + z * span) + (span/2)), Quaternion.Euler(0, 0, 0));
+                m_walls.Add(go);
                 Edge edge = go.AddComponent<Edge>() as Edge;
 
                 go.GetComponent<Edge>().tiles = new Tile[2];
@@ -150,8 +226,8 @@ public class GenerateMaze : MonoBehaviour
 
                 edges.Add(go.GetComponent<Edge>());
                 //(z * span) shifts it over by span because the forloop doesn't change the position of the first wall
-                GameObject goM = (GameObject)Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, (startPoint.position.z + (z * span) + span) * -1 + (span / 2)), Quaternion.Euler(0, 0, 0));
-
+                GameObject goM = Instantiate(prefab, new Vector3((startPoint.position.x + x * span) + (span / 2), 0, (startPoint.position.z + (z * span) + span) * -1 + (span / 2)), Quaternion.Euler(0, 0, 0));
+                m_walls.Add(goM);
                 Edge edgeM = goM.AddComponent<Edge>() as Edge;
 
                 goM.GetComponent<Edge>().tiles = new Tile[2];
@@ -169,7 +245,7 @@ public class GenerateMaze : MonoBehaviour
     {
         // Get a random edge
 
-        int randInt = Random.Range(0, edges.Count);
+        int randInt = UnityEngine.Random.Range(0, edges.Count);
 
         Edge randomEdge = edges[randInt];
         Edge randomEdgeM = edgesMirror[randInt];

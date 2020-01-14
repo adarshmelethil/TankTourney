@@ -45,6 +45,8 @@ public class TankMovement : MonoBehaviour
         m_TurnAxisName = "Horizontal" + m_PlayerNumber;
 
         m_OriginalPitch = m_MovementAudio.pitch;
+
+        //Debug.Log($"Player size: {GetComponent<Collider>().bounds.size}");
     }
     
 
@@ -57,6 +59,9 @@ public class TankMovement : MonoBehaviour
 
 
         EngineAudio(); //this is 2d audio and if we want audio this is what we want
+
+        //Debug.Log($"{gameObject.transform.position}");
+        //if (m_PlayerNumber == 1) Debug.Log($"rot: {gameObject.transform.eulerAngles.y}");
     }
 
 

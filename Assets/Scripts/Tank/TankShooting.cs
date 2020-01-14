@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class TankShooting : MonoBehaviour
@@ -19,6 +20,7 @@ public class TankShooting : MonoBehaviour
     private float m_CurrentLaunchForce;  
     private float m_ChargeSpeed;         
     private bool m_Fired;                //fired or not so that we don't fire more than once per press
+    private bool m_botFire;
 
     //poorly placed killcount variable but this is the easiest place to get information on killcount
     private int killCount = 0;
@@ -49,34 +51,49 @@ public class TankShooting : MonoBehaviour
         if(timeSinceLastShot > timeBetweenShots)
         {
             // Track the current state of the fire button and make decisions based on the current launch force.
-            m_AimSlider.value = m_MinLaunchForce;
-
-            if ((m_CurrentLaunchForce >= m_MaxLaunchForce) && !m_Fired)
+            if (!m_botFire)
             {
-                //at max charge, not fired yet
-                m_CurrentLaunchForce = m_MaxLaunchForce;
+                m_AimSlider.value = m_MinLaunchForce;
+                if ((m_CurrentLaunchForce >= m_MaxLaunchForce) && !m_Fired)
+                {
+                    //at max charge, not fired yet
+                    m_CurrentLaunchForce = m_MaxLaunchForce;
+                    Fire();
+                }
+                else if (Input.GetButtonDown(m_FireButton))
+                {
+                    //have pressed fire for first time?
+                    m_Fired = false;
+                    m_CurrentLaunchForce = m_MinLaunchForce;
+
+                    m_ShootingAudio.clip = m_ChargingClip;
+                    m_ShootingAudio.Play();
+                }
+                else if (Input.GetButton(m_FireButton) && !m_Fired)
+                {
+                    //holding fire button, not fired yet
+                    m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
+                    m_AimSlider.value = m_CurrentLaunchForce;
+                }
+                else if (Input.GetButtonUp(m_FireButton) && !m_Fired)
+                {
+                    //Debug.Log($"Fire {m_CurrentLaunchForce}");
+                    //we released the button, having not fired yet
+                    Fire();
+                }
+            }else
+            {
                 Fire();
             }
-            else if (Input.GetButtonDown(m_FireButton))
-            {
-                //have pressed fire for first time?
-                m_Fired = false;
-                m_CurrentLaunchForce = m_MinLaunchForce;
+        }
+    }
 
-                m_ShootingAudio.clip = m_ChargingClip;
-                m_ShootingAudio.Play();
-            }
-            else if (Input.GetButton(m_FireButton) && !m_Fired)
-            {
-                //holding fire button, not fired yet
-                m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
-                m_AimSlider.value = m_CurrentLaunchForce;
-            }
-            else if (Input.GetButtonUp(m_FireButton) && !m_Fired)
-            {
-                //we released the button, having not fired yet
-                Fire();
-            }
+    public void BotFire(float fireval)
+    {
+        if (fireval > 0)
+        {
+            m_CurrentLaunchForce = Math.Max(m_MinLaunchForce, m_MaxLaunchForce * Math.Min(1, Math.Max(0, fireval)));
+            m_botFire = true;
         }
     }
 
@@ -86,6 +103,7 @@ public class TankShooting : MonoBehaviour
         timeSinceLastShot = 0f;
         // Instantiate and launch the shell.
         m_Fired = true;
+        m_botFire = false;
         Rigidbody shellInstance = Instantiate(m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
 
         shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward; //charge shot

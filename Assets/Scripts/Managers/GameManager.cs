@@ -14,8 +14,10 @@ public class GameManager : MonoBehaviour
     public GenerateMaze mazeGenerator;
     private TankManager[] m_Tanks;           //array of tank managers figure out how to do this with a group of ai tanks instead of players
     public GameObject m_flag;
+    public GameObject[] m_EdgeWalls;
 
     public Text[] m_TankTimerTexts;
+    public Text[] m_TankConnectedTexts;
     public Button pauseButton;
     public Button unPauseButton;
     public Button startButton;
@@ -27,7 +29,7 @@ public class GameManager : MonoBehaviour
     //public PlayerServer[] m_PlayerServers;
     private const int NUM_PLAYERS = 2;
 
-    private const float STARTING_TIME = 200f;
+    private const float STARTING_TIME = 200000f;
     private int m_RoundNumber;              //round number
     private WaitForSeconds m_StartWait;     //delay for coroutine
     private WaitForSeconds m_EndWait;
@@ -48,6 +50,8 @@ public class GameManager : MonoBehaviour
         SetCameraTargets();
 
         Time.timeScale = 0;
+
+        mazeGenerator.setEdgeWalls(m_EdgeWalls);
         //StartCoroutine(GameLoop());
     }
 
@@ -66,6 +70,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        DisableTankControl();
+    }
+
     public void StartGame()
     {
         Time.timeScale = 1;
@@ -76,6 +85,10 @@ public class GameManager : MonoBehaviour
 
     public void Restart()
     {
+        foreach (TankManager m_Tank in m_Tanks)
+        {
+            m_Tank.Destroy();
+        }
         SceneManager.LoadScene(0);
     }
 
@@ -123,7 +136,7 @@ public class GameManager : MonoBehaviour
             m_Tanks[i].m_PlayerNumber = i + 1;
             m_Tanks[i].m_Instance =
                 Instantiate(m_TankPrefab, m_Tanks[i].m_SpawnPoint.position, m_Tanks[i].m_SpawnPoint.rotation) as GameObject;
-            m_Tanks[i].Setup(m_Tanks[i].m_SpawnPoint, m_flag.transform);
+            m_Tanks[i].Setup(m_Tanks[i].m_SpawnPoint, m_flag.transform, mazeGenerator);
         }
     }
 
@@ -162,8 +175,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < m_Tanks.Length; i++)
             m_Tanks[i].setTime(STARTING_TIME);
 
-        setTimerText();
-
+        setTankTexts();
 
         m_CameraControl.SetStartPositionAndSize();
         m_RoundNumber++;
@@ -173,10 +185,20 @@ public class GameManager : MonoBehaviour
         yield return m_StartWait;
     }
 
+    private void setTankTexts()
+    {
+        setTimerText();
+        setConnectionText();
+    }
     private void setTimerText()
     {
         for (int i = 0; i < m_Tanks.Length; i++)
             m_TankTimerTexts[i].text = $"{(int)m_Tanks[i].getTime()} Seconds";
+    }
+    private void setConnectionText()
+    {
+        for (int i = 0; i < m_Tanks.Length; i++)
+            m_TankConnectedTexts[i].text = m_Tanks[i].playerConnected() ? "" : "NOT CONNECTED!";
     }
 
 
@@ -189,7 +211,7 @@ public class GameManager : MonoBehaviour
         //while (!OneTankLeft())//change to the flag held time or something
         while (!OneTankWon())
         {
-            setTimerText();
+            setTankTexts();
 
             for (int i = 0; i < m_Tanks.Length; i++)
             {
@@ -212,6 +234,7 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
     }
+
 
 
     private IEnumerator RoundEnding()

@@ -8,13 +8,13 @@ public class ShellExplosion : MonoBehaviour
     public AudioSource m_ExplosionAudio;              
     public float m_MaxDamage = 100f;                  //this will never be full damage because of how the colliders are set up
     public float m_ExplosionForce = 1000f;            //farther away from explosion less damage taken
-    public float m_MaxLifeTime = 2f;                  
+    public float m_MaxLifeTime = 20f;                  
     public float m_ExplosionRadius = 5f;              //blast radius from shell explosion
 
 
     private void Start()
     {
-        Destroy(gameObject, m_MaxLifeTime);
+        //Destroy(gameObject, m_MaxLifeTime);
     }
 
 

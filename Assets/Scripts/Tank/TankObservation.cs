@@ -12,9 +12,9 @@ public class TankObservation : MonoBehaviour
 
     private float[] m_LidarData;
     private float x;
-    private float z;
-    private float direction_x;
-    private float direction_z;
+    private float y;
+    private float r;
+
     private float distance_from_flag;
 
     private volatile bool updated = false;
@@ -44,7 +44,6 @@ public class TankObservation : MonoBehaviour
     {
         lidar();
         position();
-        direction();
         distanceFromFlag();
 
         if (!updated)
@@ -165,12 +164,8 @@ public class TankObservation : MonoBehaviour
     private void position()
     {
         x = transform.position.x;
-        z = transform.position.z;
-    }
-    private void direction()
-    {
-        direction_x = transform.forward.x;
-        direction_z = transform.forward.z;
+        y = transform.position.z;
+        r = transform.eulerAngles.y;
     }
     public void distanceFromFlag()
     {
@@ -184,10 +179,11 @@ public class TankObservation : MonoBehaviour
     }
 
     public float[] getLidarData() { return m_LidarData; }
-    public float getX() { return x; }
-    public float getY() { return z; }
-    public float getDirectionX() { return direction_x; }
-    public float getDirectionY() { return direction_z; }
+
+    public Tuple<float, float, float> getPosition()
+    {
+        return new Tuple<float, float, float>(x, y, r);
+    }
     public float getDistanceToFlag() { return distance_from_flag; }
 
     public Tuple<float, float> getOdometry()

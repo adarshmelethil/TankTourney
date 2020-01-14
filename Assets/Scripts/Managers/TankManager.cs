@@ -24,6 +24,7 @@ public class TankManager
     private Color m_PlayerColor;
     private PlayerServer m_playerServer;
     private TankObservation m_tankObservation;
+    private GenerateMaze m_GenerateMaze;
     private GameObject healthCanvas;
     private GameObject killCountCanvas;
     private Text killCount;
@@ -31,10 +32,11 @@ public class TankManager
     private float m_timer;
     public float distanceToFlag; //can change to public getter and setters instead
 
-    public void Setup(Transform spawnPoint, Transform flag)
+    public void Setup(Transform spawnPoint, Transform flag, GenerateMaze generateMaze)
     {
         //sets random spawn point for tank
         this.spawnPoint = m_SpawnPoint.position;
+        m_GenerateMaze = generateMaze;
 
         m_Movement = m_Instance.GetComponent<TankMovement>();
         m_Movement.m_PlayerNumber = teamNumber;
@@ -93,21 +95,27 @@ public class TankManager
 
     public void DisableControl()
     {
-        m_Movement.enabled = false;
-        m_Shooting.enabled = false;
+        if (m_Movement != null)
+            m_Movement.enabled = false;
+        if (m_Shooting != null)
+            m_Shooting.enabled = false;
+        if (m_playerServer != null)
+            m_playerServer.Stop();
 
-        m_playerServer.Stop();
-
-        m_CanvasGameObject.SetActive(false);
+        if (m_CanvasGameObject != null)
+            m_CanvasGameObject.SetActive(false);
     }
 
-
+    public bool playerConnected()
+    {
+        return m_playerServer.playerConnected();
+    }
     public void EnableControl()
     {
         m_Movement.enabled = true;
         m_Shooting.enabled = true;
 
-        m_playerServer.Run(teamNumber, m_Movement, m_tankObservation);
+        m_playerServer.Run(teamNumber, m_Movement, m_tankObservation, m_Shooting, m_GenerateMaze);
 
         m_CanvasGameObject.SetActive(true);
     }
@@ -124,7 +132,7 @@ public class TankManager
         m_Instance.SetActive(true);
     }
 
-    void OnDestroy()
+    public void Destroy()
     {
         m_playerServer.Stop();
     }
