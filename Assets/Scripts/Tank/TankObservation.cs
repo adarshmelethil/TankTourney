@@ -194,7 +194,7 @@ public class TankObservation : MonoBehaviour
         //float angleTurned = Vector3.SignedAngle(lastDirection, currentDirection, Vector3.up);
         float angleTurned = lastDirection - currentDirection;
         float distanceTravelled = Vector3.Distance(lastPosition, currentPosition);
-        Debug.Log($"{lastDirection} - {currentDirection} = {angleTurned}");
+        //Debug.Log($"{lastDirection} - {currentDirection} = {angleTurned}");
         //Quaternion rotation = Quaternion.Euler(0, angleTurned, 0);
         //Vector3 estimatedDirection = rotation * lastDirection;
         //Debug.Log($"{lastDirection} -{angleTurned}-> {estimatedDirection} = {currentDirection}");
