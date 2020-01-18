@@ -36,8 +36,9 @@ public class PlayerServer
     // Game Mode
     public bool DebugMode = true;
 
-    public void Run(int portOffset, TankMovement mv, TankObservation obv, TankShooting shoot, GenerateMaze generateMaze)
+    public void Run(bool debug, int portOffset, TankMovement mv, TankObservation obv, TankShooting shoot, GenerateMaze generateMaze)
     {
+        DebugMode = debug;
         m_Movement = mv;
         m_Observation = obv;
         m_Shooting = shoot;
@@ -49,7 +50,9 @@ public class PlayerServer
         m_ControllerClient = new UdpClient(CONTROL_PORT + m_portOffset);
         //m_ObservationClient = new UdpClient(OBSERVATION_PORT + m_portOffset);
         m_ipEndPoint = new IPEndPoint(IPAddress.Any, OBSERVATION_PORT + m_portOffset);
-        Debug.Log($"First: {m_ipEndPoint.Address}");
+        var debugString = DebugMode ? "Debug" : "";
+        var startString = $"Starting {debugString} Server: {m_ipEndPoint.Address}";
+        Debug.Log(startString);
 
         // Control thread
         ThreadStart controlThreadDelegate = new ThreadStart(ControlListener);

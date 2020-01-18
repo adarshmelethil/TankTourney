@@ -110,12 +110,12 @@ public class TankManager
     {
         return m_playerServer.playerConnected();
     }
-    public void EnableControl()
+    public void EnableControl(bool debug)
     {
         m_Movement.enabled = true;
         m_Shooting.enabled = true;
 
-        m_playerServer.Run(teamNumber, m_Movement, m_tankObservation, m_Shooting, m_GenerateMaze);
+        m_playerServer.Run(debug, teamNumber, m_Movement, m_tankObservation, m_Shooting, m_GenerateMaze);
 
         m_CanvasGameObject.SetActive(true);
     }

@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     public Text[] m_TankConnectedTexts;
     public Button pauseButton;
     public Button unPauseButton;
+    public Button debugStartButton;
     public Button startButton;
     public Canvas pauseMenu;
 
@@ -28,8 +29,9 @@ public class GameManager : MonoBehaviour
 
     //public PlayerServer[] m_PlayerServers;
     private const int NUM_PLAYERS = 2;
+    private bool m_debug;
 
-    private const float STARTING_TIME = 200000f;
+    private const float STARTING_TIME = 300f;
     private int m_RoundNumber;              //round number
     private WaitForSeconds m_StartWait;     //delay for coroutine
     private WaitForSeconds m_EndWait;
@@ -41,6 +43,7 @@ public class GameManager : MonoBehaviour
         //pauseButton.gameObject.SetActive(true);
         //unPauseButton.gameObject.SetActive(false);
         startButton.gameObject.SetActive(true);
+        debugStartButton.gameObject.SetActive(true);
         pauseButton.gameObject.SetActive(false);
         pauseMenu.gameObject.SetActive(false);
         m_StartWait = new WaitForSeconds(m_StartDelay);
@@ -74,11 +77,12 @@ public class GameManager : MonoBehaviour
     {
         DisableTankControl();
     }
-
-    public void StartGame()
+    public void StartGame(bool debug)
     {
+        m_debug = debug;
         Time.timeScale = 1;
         startButton.gameObject.SetActive(false);
+        debugStartButton.gameObject.SetActive(false);
         pauseButton.gameObject.SetActive(true);
         StartCoroutine(GameLoop());
     }
@@ -332,7 +336,7 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < m_Tanks.Length; i++)
         {
-            m_Tanks[i].EnableControl();
+            m_Tanks[i].EnableControl(m_debug);
         }
     }
 
