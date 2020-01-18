@@ -21,9 +21,9 @@ public class TankObservation : MonoBehaviour
     private readonly System.Threading.EventWaitHandle waitHandle = new System.Threading.AutoResetEvent(false);
 
     private Vector3 lastPosition;
-    private Vector3 lastDirection;
+    private float lastDirection;
     private Vector3 currentPosition;
-    private Vector3 currentDirection;
+    private float currentDirection;
 
     // Start is called before the first frame update
     void Start()
@@ -175,7 +175,7 @@ public class TankObservation : MonoBehaviour
     public void updatePostion()
     {
         currentPosition = transform.position;
-        currentDirection = transform.forward;
+        currentDirection = transform.eulerAngles.y;
     }
 
     public float[] getLidarData() { return m_LidarData; }
@@ -191,9 +191,10 @@ public class TankObservation : MonoBehaviour
         updated = false;
         waitHandle.WaitOne();
 
-        float angleTurned = Vector3.SignedAngle(lastDirection, currentDirection, Vector3.up);
+        //float angleTurned = Vector3.SignedAngle(lastDirection, currentDirection, Vector3.up);
+        float angleTurned = lastDirection - currentDirection;
         float distanceTravelled = Vector3.Distance(lastPosition, currentPosition);
-
+        Debug.Log($"{lastDirection} - {currentDirection} = {angleTurned}");
         //Quaternion rotation = Quaternion.Euler(0, angleTurned, 0);
         //Vector3 estimatedDirection = rotation * lastDirection;
         //Debug.Log($"{lastDirection} -{angleTurned}-> {estimatedDirection} = {currentDirection}");
